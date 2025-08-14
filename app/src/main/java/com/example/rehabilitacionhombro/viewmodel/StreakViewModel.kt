@@ -21,7 +21,6 @@ import java.time.format.DateTimeFormatter
 
 class StreakViewModel(private val streakDataStore: StreakDataStore) : ViewModel() {
 
-    // --- Flujos de datos para la UI ---
     val streakCount: StateFlow<Int> = streakDataStore.streakCount
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = 0)
 
@@ -56,8 +55,6 @@ class StreakViewModel(private val streakDataStore: StreakDataStore) : ViewModel(
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = false)
 
 
-    // --- Acciones que la UI puede llamar ---
-
     fun onRoutineCompleted() {
         viewModelScope.launch {
             val rewarded = streakDataStore.updateStreakAndDates()
@@ -91,7 +88,6 @@ class StreakViewModel(private val streakDataStore: StreakDataStore) : ViewModel(
         }
     }
 
-    // **ACTUALIZADO:** Función que comprueba y desbloquea logros
     fun checkAndUnlockAchievements() {
         viewModelScope.launch {
             val currentStreak = streakCount.value

@@ -14,20 +14,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.example.rehabilitacionhombro.ui.theme.RehabilitacionHombroTheme
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
 
-    // **NUEVO:** Preparamos el lanzador de permisos de notificaciones
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // El permiso ha sido concedido
             scheduleDailyNotification()
         }
     }
@@ -35,7 +35,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // **NUEVO:** Comprobamos y solicitamos el permiso de notificaciones
+        // **CORREGIDO:** Configura el modo a pantalla completa antes de setContent
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
                 scheduleDailyNotification()
@@ -43,11 +45,18 @@ class MainActivity : ComponentActivity() {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         } else {
-            // Para versiones anteriores a Android 13, no se necesita pedir permiso
             scheduleDailyNotification()
         }
 
         setContent {
+            // **CORREGIDO:** El rememberSystemUiController debe ir dentro de la composición
+            val systemUiController = rememberSystemUiController()
+            LaunchedEffect(systemUiController) {
+                systemUiController.isSystemBarsVisible = false
+                systemUiController.isNavigationBarVisible = false
+                systemUiController.isStatusBarVisible = false
+            }
+
             RehabilitacionHombroTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -59,9 +68,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // **NUEVO:** Función para programar la notificación diaria
     private fun scheduleDailyNotification() {
-        // La notificación se programará para las 7 PM (hora local del dispositivo)
         val notificationWorkRequest = PeriodicWorkRequestBuilder<NotificationWorker>(
             24, TimeUnit.HOURS
         )
@@ -69,7 +76,6 @@ class MainActivity : ComponentActivity() {
             .addTag("daily_rehab_notification")
             .build()
 
-        // Usamos ExistingPeriodicWorkPolicy.KEEP para no sobreescribir la tarea si ya existe
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "DailyRehabNotification",
             ExistingPeriodicWorkPolicy.KEEP,
@@ -80,13 +86,12 @@ class MainActivity : ComponentActivity() {
     private fun getNotificationInitialDelay(): Long {
         val now = java.util.Calendar.getInstance()
         val dueTime = java.util.Calendar.getInstance().apply {
-            set(java.util.Calendar.HOUR_OF_DAY, 19) // 7 PM
+            set(java.util.Calendar.HOUR_OF_DAY, 19)
             set(java.util.Calendar.MINUTE, 0)
             set(java.util.Calendar.SECOND, 0)
         }
 
         if (now.after(dueTime)) {
-            // Si ya pasaron las 7 PM, programamos para mañana
             dueTime.add(java.util.Calendar.HOUR_OF_DAY, 24)
         }
 

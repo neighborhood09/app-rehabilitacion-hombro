@@ -4,10 +4,12 @@ package com.example.rehabilitacionhombro.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.EmojiEvents // **NUEVO:** Importamos el icono de la copa
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -33,7 +35,6 @@ fun StartScreen(
     streakViewModel: StreakViewModel,
     onStartClick: () -> Unit,
     onNavigateToCalendar: () -> Unit,
-    // **NUEVO:** Callback para navegar a la pantalla de logros
     onNavigateToAchievements: () -> Unit
 ) {
     val streakCount by streakViewModel.streakCount.collectAsState()
@@ -48,73 +49,62 @@ fun StartScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Contenedor para el calendario y los logros
+        // Contenedor de iconos superiores
         Row(
-            modifier = Modifier.align(Alignment.TopStart),
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Botón del calendario
-            IconButton(onClick = onNavigateToCalendar) {
-                Icon(
-                    imageVector = Icons.Default.CalendarMonth,
-                    contentDescription = "Ver Calendario de Progreso",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onNavigateToCalendar) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = "Ver Calendario de Progreso",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(onClick = onNavigateToAchievements) {
+                    Icon(
+                        imageVector = Icons.Filled.EmojiEvents,
+                        contentDescription = "Ver Logros",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-            // **NUEVO:** Botón de logros
-            IconButton(onClick = onNavigateToAchievements) {
-                Icon(
-                    imageVector = Icons.Filled.EmojiEvents,
-                    contentDescription = "Ver Logros",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_escudo),
+                    contentDescription = "Protectores de Racha",
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = streakSavers.toString(),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }
 
-        // Icono y contador de Escudos (estático)
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_escudo),
-                contentDescription = "Protectores de Racha",
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = streakSavers.toString(),
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        // Avatar del entrenador en la esquina inferior derecha
-        CoachAvatar(
-            streakCount = streakCount,
-            userName = userName,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 60.dp)
-        )
-
+        // Contenido principal de la pantalla, centrado verticalmente
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 32.dp, bottom = 16.dp),
+            modifier = Modifier.fillMaxSize().offset(y = (-60).dp), // Ajuste para que baje un poco
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.Center
         ) {
-            // Título
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 val titleText = if (userName.isNotBlank()) "¡A por ello, $userName!" else "Mi Rehabilitación"
                 Text(titleText, style = MaterialTheme.typography.headlineMedium)
                 Text("¡Bienvenido/a de nuevo!", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
-            // Círculo de la racha
+            Spacer(modifier = Modifier.height(32.dp))
+
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -142,51 +132,75 @@ fun StartScreen(
                     )
                 }
             }
+        }
 
-            // Botón para usar el escudo, visible solo si se cumplen las condiciones
-            if (canUseShield) {
-                Button(
-                    onClick = { showShieldDialog = true },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
-                ) {
-                    Text("Usar Escudo Protector")
-                }
-            }
+        // Contenedor para botones y coach en la parte inferior
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp),
+        ) {
+            // **CORREGIDO:** El coach en la esquina inferior derecha
+            CoachAvatar(
+                streakCount = streakCount,
+                userName = userName,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 60.dp)
+            )
 
-            // Botón de acción principal
-            Button(
-                onClick = onStartClick,
+            // Columna para los botones
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .align(Alignment.BottomCenter)
             ) {
-                Text("Comenzar Rutina de Hoy")
+                if (canUseShield) {
+                    Button(
+                        onClick = { showShieldDialog = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
+                    ) {
+                        Text("Usar Escudo Protector")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                Button(
+                    onClick = onStartClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    Text("Comenzar Rutina de Hoy")
+                }
             }
         }
+    }
 
-        // Diálogo de confirmación
-        if (showShieldDialog) {
-            AlertDialog(
-                onDismissRequest = { showShieldDialog = false },
-                title = { Text("Usar Escudo Protector") },
-                text = { Text("¿Estás seguro de que quieres usar un escudo para recuperar tu racha de ayer? Te quedan $streakSavers escudos.") },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            streakViewModel.useStreakSaver()
-                            showShieldDialog = false
-                        }
-                    ) {
-                        Text("Sí, usarlo")
+    if (showShieldDialog) {
+        AlertDialog(
+            onDismissRequest = { showShieldDialog = false },
+            title = { Text("Usar Escudo Protector") },
+            text = { Text("¿Estás seguro de que quieres usar un escudo para recuperar tu racha de ayer? Te quedan $streakSavers escudos.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        streakViewModel.useStreakSaver()
+                        showShieldDialog = false
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showShieldDialog = false }) {
-                        Text("Cancelar")
-                    }
+                ) {
+                    Text("Sí, usarlo")
                 }
-            )
-        }
+            },
+            dismissButton = {
+                TextButton(onClick = { showShieldDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }

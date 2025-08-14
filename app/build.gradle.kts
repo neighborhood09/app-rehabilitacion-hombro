@@ -56,9 +56,10 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1")
     implementation("androidx.compose.material:material-icons-extended-android:1.6.7")
-
-    // **NUEVO:** Dependencia para WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // **NUEVO:** Dependencia para la librería Accompanist de System UI Controller
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.34.0")
 
     // Para convertir objetos a JSON y viceversa
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")

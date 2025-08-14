@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -38,8 +37,6 @@ fun ExerciseScreen(
     val context = LocalContext.current
 
     var showEditDialog by remember { mutableStateOf(false) }
-
-    // Almacenamos los valores editables en un estado para que el diálogo pueda modificarlos
     var currentSets by remember(exercise.id) { mutableStateOf(exercise.sets) }
     var currentReps by remember(exercise.id) { mutableStateOf(exercise.reps) }
     var currentDuration by remember(exercise.id) { mutableStateOf(exercise.duration) }
@@ -49,19 +46,20 @@ fun ExerciseScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        // Contenido principal que se desplaza (Parte superior y descripción)
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(bottom = 140.dp) // Añadimos un padding fijo para que los botones de abajo no lo tapen
+                .padding(horizontal = 16.dp)
         ) {
-            // Fila para el progreso y el botón de ajustes
+            // Parte superior: progreso, título, imagen
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Título y barra de progreso
                 Column(modifier = Modifier.weight(1f)) {
                     Text(exercise.phase, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -70,8 +68,6 @@ fun ExerciseScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-
-                // Botón de ajustes en la esquina superior derecha
                 IconButton(onClick = { showEditDialog = true }) {
                     Icon(
                         imageVector = Icons.Default.Settings,
@@ -80,12 +76,9 @@ fun ExerciseScreen(
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Text(exercise.title, style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
-
             Image(
                 painter = painterResource(id = if (imageResId != 0) imageResId else R.drawable.ic_launcher_background),
                 contentDescription = exercise.title,
@@ -95,14 +88,19 @@ fun ExerciseScreen(
                 contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.height(16.dp))
-
-            // --- EXPLICACIONES Y VALORES ESTÁTICOS (MEJORADOS) ---
             Text("Músculos: ${exercise.muscle}", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text(exercise.description, style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(24.dp))
+        }
 
-            // **ACTUALIZADO:** Mostramos los valores de manera limpia y ordenada
+        // Parte inferior fija: series, reps, timer y botones de navegación
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             if (currentSets > 0) {
                 Text("Series: ${currentSets}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
             }
@@ -110,14 +108,11 @@ fun ExerciseScreen(
                 if (currentSets > 0) { Spacer(modifier = Modifier.height(8.dp)) }
                 Text("Repeticiones: ${currentReps}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
             }
-
             if (exercise.isTimed && currentDuration > 0) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Duración: ${currentDuration}s", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             if (exercise.isTimed) {
                 TimerView(
                     key = exercise.id,
@@ -126,54 +121,52 @@ fun ExerciseScreen(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
-
-            Spacer(modifier = Modifier.weight(1f))
-
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Button(onClick = onPrevious, enabled = exerciseIndex > 0) {
+                Button(
+                    onClick = onPrevious,
+                    enabled = exerciseIndex > 0,
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text("Anterior")
                 }
-                Button(onClick = {
-                    // Al avanzar, guardamos los últimos cambios si es necesario
-                    streakViewModel.saveExercises(
-                        exercises.toMutableList().also {
-                            it[exerciseIndex] = it[exerciseIndex].copy(
-                                sets = currentSets,
-                                reps = currentReps,
-                                duration = currentDuration
-                            )
-                        }
-                    )
-                    onNext()
-                }) {
+                Button(
+                    onClick = {
+                        streakViewModel.saveExercises(
+                            exercises.toMutableList().also {
+                                it[exerciseIndex] = it[exerciseIndex].copy(
+                                    sets = currentSets,
+                                    reps = currentReps,
+                                    duration = currentDuration
+                                )
+                            }
+                        )
+                        onNext()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text(if (exerciseIndex < exerciseCount - 1) "Siguiente" else "Finalizar")
                 }
             }
         }
     }
 
-    // Cuadro de diálogo de ajustes que se muestra si showEditDialog es true
     if (showEditDialog) {
-        // Variables de estado para los menús desplegables
         var expandedSets by remember { mutableStateOf(false) }
         var expandedReps by remember { mutableStateOf(false) }
         var expandedMinutes by remember { mutableStateOf(false) }
         var expandedSeconds by remember { mutableStateOf(false) }
 
-        // Estados para los valores seleccionados en el diálogo
         var setsDialog by remember { mutableStateOf(currentSets) }
         var repsDialog by remember { mutableStateOf(currentReps) }
         var durationMinutesDialog by remember { mutableStateOf(currentDuration / 60) }
         var durationSecondsDialog by remember { mutableStateOf(currentDuration % 60) }
 
-        // Listas de opciones para los menús
-        val setsOptions = (0..10).toList() // **ACTUALIZADO:** Empezamos desde 0
-        val repsOptions = (0..30).toList() // **ACTUALIZADO:** Empezamos desde 0
+        val setsOptions = (0..10).toList()
+        val repsOptions = (0..30).toList()
         val minutesOptions = (0..5).toList()
         val secondsOptions = (0..59).toList()
 
@@ -182,7 +175,6 @@ fun ExerciseScreen(
             title = { Text(text = "Ajustar ejercicio") },
             text = {
                 Column {
-                    // Menús para Series y Repeticiones
                     Text("Series", style = MaterialTheme.typography.titleSmall)
                     ExposedDropdownMenuBox(
                         expanded = expandedSets,
@@ -245,7 +237,6 @@ fun ExerciseScreen(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Menús para Duración (solo si el ejercicio es cronometrado)
                     if (exercise.isTimed) {
                         Text("Duración", style = MaterialTheme.typography.titleSmall)
                         Row(
@@ -317,10 +308,8 @@ fun ExerciseScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        // Guardamos los cambios en los estados principales
                         currentSets = setsDialog
                         currentReps = repsDialog
-                        // Calculamos la duración total en segundos
                         currentDuration = durationMinutesDialog * 60 + durationSecondsDialog
                         showEditDialog = false
                     }
@@ -336,7 +325,6 @@ fun ExerciseScreen(
         )
     }
 }
-
 private fun getImageResourceId(context: Context, name: String): Int {
     return context.resources.getIdentifier(name, "drawable", context.packageName)
 }

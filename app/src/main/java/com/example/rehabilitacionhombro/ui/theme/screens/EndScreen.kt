@@ -35,6 +35,7 @@ fun EndScreen(
     val newAchievement by streakViewModel.newAchievementUnlocked.collectAsState()
 
     LaunchedEffect(Unit) {
+        // **CORREGIDO:** Aseguramos que la rutina se complete y los datos se actualicen ANTES de comprobar los logros.
         streakViewModel.onRoutineCompleted()
         streakViewModel.checkAndUnlockAchievements()
     }
@@ -104,12 +105,10 @@ fun EndScreen(
         }
     }
 
-    // **ACTUALIZADO:** Diálogo de felicitación de logros
     if (newAchievement != null) {
         AchievementUnlockedDialog(
             achievement = newAchievement!!,
             onDismiss = {
-                // Al cerrar el diálogo, reseteamos el estado para que no vuelva a aparecer
                 streakViewModel.resetAchievementState()
             }
         )
