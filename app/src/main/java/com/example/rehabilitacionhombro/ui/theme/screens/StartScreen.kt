@@ -1,4 +1,4 @@
-// Fichero: app/src/main/java/com/example/rehabilitacionhombro/ui/screens/StartScreen.kt
+// Fichero: app/src/main/java/com/example/rehabilitacionhombro/ui/theme/screens/StartScreen.kt
 package com.example.rehabilitacionhombro.ui.screens
 
 import androidx.compose.foundation.Image
@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.EmojiEvents // **NUEVO:** Importamos el icono de la copa
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,12 +32,14 @@ import com.example.rehabilitacionhombro.viewmodel.StreakViewModel
 fun StartScreen(
     streakViewModel: StreakViewModel,
     onStartClick: () -> Unit,
-    onNavigateToCalendar: () -> Unit
+    onNavigateToCalendar: () -> Unit,
+    // **NUEVO:** Callback para navegar a la pantalla de logros
+    onNavigateToAchievements: () -> Unit
 ) {
     val streakCount by streakViewModel.streakCount.collectAsState()
     val userName by streakViewModel.userName.collectAsState()
     val streakSavers by streakViewModel.streakSavers.collectAsState()
-    val canUseShield by streakViewModel.canUseShield.collectAsState() // **NUEVO:** Leemos el estado del escudo
+    val canUseShield by streakViewModel.canUseShield.collectAsState()
 
     var showShieldDialog by remember { mutableStateOf(false) }
 
@@ -45,16 +48,27 @@ fun StartScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Botón del calendario en la esquina superior izquierda
-        IconButton(
-            onClick = onNavigateToCalendar,
-            modifier = Modifier.align(Alignment.TopStart)
+        // Contenedor para el calendario y los logros
+        Row(
+            modifier = Modifier.align(Alignment.TopStart),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.CalendarMonth,
-                contentDescription = "Ver Calendario de Progreso",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // Botón del calendario
+            IconButton(onClick = onNavigateToCalendar) {
+                Icon(
+                    imageVector = Icons.Default.CalendarMonth,
+                    contentDescription = "Ver Calendario de Progreso",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            // **NUEVO:** Botón de logros
+            IconButton(onClick = onNavigateToAchievements) {
+                Icon(
+                    imageVector = Icons.Filled.EmojiEvents,
+                    contentDescription = "Ver Logros",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
 
         // Icono y contador de Escudos (estático)
@@ -77,13 +91,13 @@ fun StartScreen(
             )
         }
 
-        // **NUEVO:** Avatar del entrenador en la esquina inferior derecha
+        // Avatar del entrenador en la esquina inferior derecha
         CoachAvatar(
             streakCount = streakCount,
             userName = userName,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 60.dp) // Lo subimos para que no lo tape el botón
+                .padding(bottom = 60.dp)
         )
 
         Column(
@@ -129,7 +143,7 @@ fun StartScreen(
                 }
             }
 
-            // **NUEVO:** Botón para usar el escudo, visible solo si se cumplen las condiciones
+            // Botón para usar el escudo, visible solo si se cumplen las condiciones
             if (canUseShield) {
                 Button(
                     onClick = { showShieldDialog = true },
@@ -150,29 +164,29 @@ fun StartScreen(
                 Text("Comenzar Rutina de Hoy")
             }
         }
-    }
 
-    // **NUEVO:** Diálogo de confirmación
-    if (showShieldDialog) {
-        AlertDialog(
-            onDismissRequest = { showShieldDialog = false },
-            title = { Text("Usar Escudo Protector") },
-            text = { Text("¿Estás seguro de que quieres usar un escudo para recuperar tu racha de ayer? Te quedan $streakSavers escudos.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        streakViewModel.useStreakSaver()
-                        showShieldDialog = false
+        // Diálogo de confirmación
+        if (showShieldDialog) {
+            AlertDialog(
+                onDismissRequest = { showShieldDialog = false },
+                title = { Text("Usar Escudo Protector") },
+                text = { Text("¿Estás seguro de que quieres usar un escudo para recuperar tu racha de ayer? Te quedan $streakSavers escudos.") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            streakViewModel.useStreakSaver()
+                            showShieldDialog = false
+                        }
+                    ) {
+                        Text("Sí, usarlo")
                     }
-                ) {
-                    Text("Sí, usarlo")
+                },
+                dismissButton = {
+                    TextButton(onClick = { showShieldDialog = false }) {
+                        Text("Cancelar")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { showShieldDialog = false }) {
-                    Text("Cancelar")
-                }
-            }
-        )
+            )
+        }
     }
 }

@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -16,6 +17,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.rehabilitacionhombro.R
 import com.example.rehabilitacionhombro.data.Exercise
@@ -41,10 +43,6 @@ fun ExerciseScreen(
     var currentSets by remember(exercise.id) { mutableStateOf(exercise.sets) }
     var currentReps by remember(exercise.id) { mutableStateOf(exercise.reps) }
     var currentDuration by remember(exercise.id) { mutableStateOf(exercise.duration) }
-
-    val setsRepsDisplay by remember(currentSets, currentReps) {
-        mutableStateOf("${currentSets} series de ${currentReps} repeticiones")
-    }
 
     val imageResId = remember(exercise.imageResName) {
         getImageResourceId(context, exercise.imageResName)
@@ -98,15 +96,22 @@ fun ExerciseScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- EXPLICACIONES Y VALORES ESTÁTICOS ---
+            // --- EXPLICACIONES Y VALORES ESTÁTICOS (MEJORADOS) ---
             Text("Músculos: ${exercise.muscle}", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text(exercise.description, style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Mostramos los valores de manera estática
-            Text("Series y Repeticiones: ${setsRepsDisplay}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-            if (exercise.isTimed) {
+            // **ACTUALIZADO:** Mostramos los valores de manera limpia y ordenada
+            if (currentSets > 0) {
+                Text("Series: ${currentSets}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+            }
+            if (currentReps > 0) {
+                if (currentSets > 0) { Spacer(modifier = Modifier.height(8.dp)) }
+                Text("Repeticiones: ${currentReps}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+            }
+
+            if (exercise.isTimed && currentDuration > 0) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Duración: ${currentDuration}s", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
             }
@@ -167,8 +172,8 @@ fun ExerciseScreen(
         var durationSecondsDialog by remember { mutableStateOf(currentDuration % 60) }
 
         // Listas de opciones para los menús
-        val setsOptions = (1..10).toList()
-        val repsOptions = (1..30).toList()
+        val setsOptions = (0..10).toList() // **ACTUALIZADO:** Empezamos desde 0
+        val repsOptions = (0..30).toList() // **ACTUALIZADO:** Empezamos desde 0
         val minutesOptions = (0..5).toList()
         val secondsOptions = (0..59).toList()
 

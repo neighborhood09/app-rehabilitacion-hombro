@@ -4,6 +4,7 @@ package com.example.rehabilitacionhombro.data
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -22,39 +23,42 @@ class StreakDataStore(context: Context) {
 
     private val appContext = context.applicationContext
 
-    companion object {
+    private companion object {
         val STREAK_COUNT_KEY = intPreferencesKey("streak_count")
         val COMPLETED_DATES_KEY = stringSetPreferencesKey("completed_dates")
         val USER_NAME_KEY = stringPreferencesKey("user_name")
         val STREAK_SAVERS_KEY = intPreferencesKey("streak_savers")
-        // **NUEVO:** La clave para guardar la lista de ejercicios como texto JSON
         val EXERCISES_LIST_KEY = stringPreferencesKey("exercises_list")
+        val UNLOCKED_ACHIEVEMENTS_KEY = stringSetPreferencesKey("unlocked_achievements")
+        val STREAK_SAVER_USED_KEY = booleanPreferencesKey("first_streak_saver_used")
     }
 
-    // --- Flujos para leer los datos ---
-    val streakCount: Flow<Int> = appContext.dataStore.data.map { it[STREAK_COUNT_KEY] ?: 0 }
-    val completedDates: Flow<Set<String>> = appContext.dataStore.data.map { it[COMPLETED_DATES_KEY] ?: emptySet() }
-    val userName: Flow<String> = appContext.dataStore.data.map { it[USER_NAME_KEY] ?: "" }
-    val streakSavers: Flow<Int> = appContext.dataStore.data.map { it[STREAK_SAVERS_KEY] ?: 0 }
-
-    // **ACTUALIZADO:** Flujo para leer la lista de ejercicios
+    val streakCount: Flow<Int> = appContext.dataStore.data.map { preferences -> preferences[STREAK_COUNT_KEY] ?: 0 }
+    val completedDates: Flow<Set<String>> = appContext.dataStore.data.map { preferences -> preferences[COMPLETED_DATES_KEY] ?: emptySet() }
+    val userName: Flow<String> = appContext.dataStore.data.map { preferences -> preferences[USER_NAME_KEY] ?: "" }
+    val streakSavers: Flow<Int> = appContext.dataStore.data.map { preferences -> preferences[STREAK_SAVERS_KEY] ?: 0 }
     val exercises: Flow<List<Exercise>> = appContext.dataStore.data.map { preferences ->
         val jsonString = preferences[EXERCISES_LIST_KEY]
         if (jsonString.isNullOrBlank()) {
             // Si no hay rutina guardada, carga la de por defecto
             ExerciseData.getDefaultExercises()
         } else {
-            // Si hay una rutina guardada, la decodifica desde JSON
-            // El decodificador ya maneja la nueva estructura de la clase Exercise
-            Json.decodeFromString<List<Exercise>>(jsonString)
+            try {
+                Json.decodeFromString<List<Exercise>>(jsonString)
+            } catch (e: Exception) {
+                // En caso de error de deserialización, devolvemos la lista por defecto para evitar que la app se rompa
+                ExerciseData.getDefaultExercises()
+            }
         }
     }
+    val unlockedAchievements: Flow<Set<Int>> = appContext.dataStore.data.map { preferences ->
+        preferences[UNLOCKED_ACHIEVEMENTS_KEY]?.map { it.toInt() }?.toSet() ?: emptySet()
+    }
+    val firstStreakSaverUsed: Flow<Boolean> = appContext.dataStore.data.map { preferences ->
+        preferences[STREAK_SAVER_USED_KEY] ?: false
+    }
 
-    // --- Funciones para escribir los datos ---
-
-    // **ACTUALIZADO:** Función para guardar la lista de ejercicios modificada
     suspend fun saveExercises(exercises: List<Exercise>) {
-        // La serialización ahora también manejará la nueva estructura de la clase Exercise
         val jsonString = Json.encodeToString(exercises)
         appContext.dataStore.edit { preferences ->
             preferences[EXERCISES_LIST_KEY] = jsonString
@@ -100,5 +104,13 @@ class StreakDataStore(context: Context) {
             }
         }
         return newRewardEarned
+    }
+
+    suspend fun unlockAchievement(id: Int) {
+        appContext.dataStore.edit { preferences ->
+            val currentAchievements = preferences[UNLOCKED_ACHIEVEMENTS_KEY] ?: emptySet()
+            val newAchievements = currentAchievements + id.toString()
+            preferences[UNLOCKED_ACHIEVEMENTS_KEY] = newAchievements
+        }
     }
 }

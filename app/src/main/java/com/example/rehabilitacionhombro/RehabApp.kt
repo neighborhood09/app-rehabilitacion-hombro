@@ -1,3 +1,4 @@
+// Fichero: app/src/main/java/com/example/rehabilitacionhombro/RehabApp.kt
 package com.example.rehabilitacionhombro
 
 import androidx.compose.runtime.Composable
@@ -9,11 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.rehabilitacionhombro.data.StreakDataStore
-import com.example.rehabilitacionhombro.ui.screens.CalendarScreen
-import com.example.rehabilitacionhombro.ui.screens.EndScreen
-import com.example.rehabilitacionhombro.ui.screens.ExerciseScreen
-import com.example.rehabilitacionhombro.ui.screens.StartScreen
-import com.example.rehabilitacionhombro.ui.screens.WelcomeScreen
+import com.example.rehabilitacionhombro.ui.screens.*
 import com.example.rehabilitacionhombro.viewmodel.StreakViewModel
 import com.example.rehabilitacionhombro.viewmodel.StreakViewModelFactory
 
@@ -46,13 +43,13 @@ fun RehabApp() {
                 StartScreen(
                     streakViewModel = streakViewModel,
                     onStartClick = { navController.navigate("exercise/0") },
-                    onNavigateToCalendar = { navController.navigate("calendar") }
+                    onNavigateToCalendar = { navController.navigate("calendar") },
+                    onNavigateToAchievements = { navController.navigate("achievements") }
                 )
             }
             composable("exercise/{index}") { backStackEntry ->
                 val index = backStackEntry.arguments?.getString("index")?.toInt() ?: 0
                 ExerciseScreen(
-                    // **LÍNEA CORREGIDA:** Ahora le pasamos el ViewModel
                     streakViewModel = streakViewModel,
                     exercise = exercises[index],
                     exerciseIndex = index,
@@ -75,6 +72,7 @@ fun RehabApp() {
                 EndScreen(
                     streakViewModel = streakViewModel,
                     onRestartClick = {
+                        streakViewModel.checkAndUnlockAchievements()
                         navController.navigate("start") {
                             popUpTo("start") { inclusive = true }
                         }
@@ -83,6 +81,12 @@ fun RehabApp() {
             }
             composable("calendar") {
                 CalendarScreen(
+                    streakViewModel = streakViewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable("achievements") {
+                AchievementsScreen(
                     streakViewModel = streakViewModel,
                     onBack = { navController.popBackStack() }
                 )
