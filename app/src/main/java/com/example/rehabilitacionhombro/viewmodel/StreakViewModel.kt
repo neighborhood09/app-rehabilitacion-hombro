@@ -48,78 +48,58 @@ class StreakViewModel(private val streakDataStore: StreakDataStore) : ViewModel(
     val unlockedAchievements = streakDataStore.unlockedAchievements
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptySet())
 
+    // **ACTUALIZADO:** Este será el flujo que usaremos en StartScreen para detectar un nuevo logro.
     private val _newAchievementUnlocked = MutableStateFlow<Achievement?>(null)
     val newAchievementUnlocked = _newAchievementUnlocked.asStateFlow()
 
     val firstStreakSaverUsed: StateFlow<Boolean> = streakDataStore.firstStreakSaverUsed
         .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = false)
 
-
+    // Esta función solo se encarga de actualizar la racha y los escudos.
     fun onRoutineCompleted() {
         viewModelScope.launch {
             val rewarded = streakDataStore.updateStreakAndDates()
             _newRewardEarned.value = rewarded
+            // **NUEVO:** Después de actualizar, comprobamos los logros.
+            checkAndUnlockAchievements()
         }
     }
 
-    fun resetRewardState() {
-        _newRewardEarned.value = false
-    }
-
-    fun resetAchievementState() {
-        _newAchievementUnlocked.value = null
-    }
-
-    fun saveUserName(name: String) {
-        viewModelScope.launch {
-            streakDataStore.saveUserName(name)
-        }
-    }
-
-    fun useStreakSaver() {
-        viewModelScope.launch {
-            streakDataStore.useStreakSaverToFillYesterday()
-        }
-    }
-
-    fun saveExercises(updatedExercises: List<Exercise>) {
-        viewModelScope.launch {
-            streakDataStore.saveExercises(updatedExercises)
-        }
-    }
-
+    // Esta función comprueba los logros y actualiza el estado si se desbloquea uno nuevo.
     fun checkAndUnlockAchievements() {
         viewModelScope.launch {
-            val currentStreak = streakCount.value
-            val completedCount = completedDates.value.size
-            val saversCount = streakSavers.value
-            val firstTimeSaverUsed = firstStreakSaverUsed.value
+            val updatedCompletedDates = completedDates.first()
+            val updatedStreakCount = streakCount.first()
+            val updatedSaversCount = streakSavers.first()
+            val updatedFirstTimeSaverUsed = firstStreakSaverUsed.first()
+            val updatedUnlocked = unlockedAchievements.first()
 
-            // **CORREGIDO:** Obtenemos los logros desbloqueados más recientes directamente del DataStore
-            val currentUnlocked = streakDataStore.unlockedAchievements.first()
-
-            AchievementData.allAchievements.forEach { achievement ->
-                if (achievement.id !in currentUnlocked) {
-                    val isUnlocked = when (achievement.isStreakBased) {
-                        true -> currentStreak >= achievement.progressGoal
-                        false -> {
-                            when (achievement.id) {
-                                4 -> saversCount >= achievement.progressGoal
-                                5, 7, 9 -> completedCount >= achievement.progressGoal
-                                10 -> firstTimeSaverUsed
-                                else -> false
-                            }
+            val newAchievement = AchievementData.allAchievements.firstOrNull { achievement ->
+                achievement.id !in updatedUnlocked && when (achievement.isStreakBased) {
+                    true -> updatedStreakCount >= achievement.progressGoal
+                    false -> {
+                        when (achievement.id) {
+                            4 -> updatedSaversCount >= achievement.progressGoal
+                            5, 7, 9 -> updatedCompletedDates.size >= achievement.progressGoal
+                            10 -> updatedFirstTimeSaverUsed
+                            else -> false
                         }
-                    }
-
-                    if (isUnlocked) {
-                        streakDataStore.unlockAchievement(achievement.id)
-                        _newAchievementUnlocked.value = achievement
                     }
                 }
             }
+
+            if (newAchievement != null) {
+                streakDataStore.unlockAchievement(newAchievement.id)
+                _newAchievementUnlocked.value = newAchievement
+            }
         }
     }
+
+    fun resetRewardState() { _newRewardEarned.value = false }
+    fun resetAchievementState() { _newAchievementUnlocked.value = null }
+    fun saveUserName(name: String) { viewModelScope.launch { streakDataStore.saveUserName(name) } }
+    fun useStreakSaver() { viewModelScope.launch { streakDataStore.useStreakSaverToFillYesterday() } }
+    fun saveExercises(updatedExercises: List<Exercise>) { viewModelScope.launch { streakDataStore.saveExercises(updatedExercises) } }
 }
 
 class StreakViewModelFactory(private val streakDataStore: StreakDataStore) : ViewModelProvider.Factory {

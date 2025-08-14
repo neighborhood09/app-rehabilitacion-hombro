@@ -1,4 +1,4 @@
-// Fichero: app/src/main/java/com/example/rehabilitacionhombro/ui/theme/screens/EndScreen.kt
+// Fichero: app/src/main/java/com/example/rehabilitacionhombro/ui/screens/EndScreen.kt
 package com.example.rehabilitacionhombro.ui.screens
 
 import android.content.Context
@@ -34,10 +34,9 @@ fun EndScreen(
     val newRewardEarned by streakViewModel.newRewardEarned.collectAsState()
     val newAchievement by streakViewModel.newAchievementUnlocked.collectAsState()
 
+    // **CORREGIDO:** Aquí solo actualizamos la racha y los datos, pero no comprobamos los logros.
     LaunchedEffect(Unit) {
-        // **CORREGIDO:** Aseguramos que la rutina se complete y los datos se actualicen ANTES de comprobar los logros.
         streakViewModel.onRoutineCompleted()
-        streakViewModel.checkAndUnlockAchievements()
     }
 
     Column(
@@ -104,62 +103,4 @@ fun EndScreen(
             Text("Hecho")
         }
     }
-
-    if (newAchievement != null) {
-        AchievementUnlockedDialog(
-            achievement = newAchievement!!,
-            onDismiss = {
-                streakViewModel.resetAchievementState()
-            }
-        )
-    }
-}
-
-@Composable
-fun AchievementUnlockedDialog(
-    achievement: Achievement,
-    onDismiss: () -> Unit
-) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val imageResId = remember(achievement.iconResName) {
-        context.resources.getIdentifier(achievement.iconResName, "drawable", context.packageName)
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(text = "¡Logro Desbloqueado!", textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
-        },
-        text = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (imageResId != 0) {
-                    Image(
-                        painter = painterResource(id = imageResId),
-                        contentDescription = null,
-                        modifier = Modifier.size(100.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Filled.EmojiEvents,
-                        contentDescription = null,
-                        modifier = Modifier.size(100.dp),
-                        tint = Color(0xFFE5B50A)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = achievement.name, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = achievement.description, textAlign = TextAlign.Center)
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cerrar")
-            }
-        }
-    )
 }
