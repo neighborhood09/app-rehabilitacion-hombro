@@ -1,3 +1,4 @@
+// Fichero: app/src/main/java/com/example/rehabilitacionhombro/data/StreakDataStore.kt
 package com.example.rehabilitacionhombro.data
 
 import android.content.Context
@@ -36,7 +37,7 @@ class StreakDataStore(context: Context) {
     val userName: Flow<String> = appContext.dataStore.data.map { it[USER_NAME_KEY] ?: "" }
     val streakSavers: Flow<Int> = appContext.dataStore.data.map { it[STREAK_SAVERS_KEY] ?: 0 }
 
-    // **NUEVO:** Flujo para leer la lista de ejercicios
+    // **ACTUALIZADO:** Flujo para leer la lista de ejercicios
     val exercises: Flow<List<Exercise>> = appContext.dataStore.data.map { preferences ->
         val jsonString = preferences[EXERCISES_LIST_KEY]
         if (jsonString.isNullOrBlank()) {
@@ -44,14 +45,16 @@ class StreakDataStore(context: Context) {
             ExerciseData.getDefaultExercises()
         } else {
             // Si hay una rutina guardada, la decodifica desde JSON
+            // El decodificador ya maneja la nueva estructura de la clase Exercise
             Json.decodeFromString<List<Exercise>>(jsonString)
         }
     }
 
     // --- Funciones para escribir los datos ---
 
-    // **NUEVO:** Función para guardar la lista de ejercicios modificada
+    // **ACTUALIZADO:** Función para guardar la lista de ejercicios modificada
     suspend fun saveExercises(exercises: List<Exercise>) {
+        // La serialización ahora también manejará la nueva estructura de la clase Exercise
         val jsonString = Json.encodeToString(exercises)
         appContext.dataStore.edit { preferences ->
             preferences[EXERCISES_LIST_KEY] = jsonString

@@ -1,3 +1,4 @@
+// Fichero: app/src/main/java/com/example/rehabilitacionhombro/data/ExerciseData.kt
 package com.example.rehabilitacionhombro.data
 
 object ExerciseData {
@@ -8,10 +9,12 @@ object ExerciseData {
                 id = 1,
                 phase = "Fase 1: Preparación y Calentamiento",
                 title = "Péndulo de Codman",
-                imageResName = "pendulo_de_codman", // Guardamos el nombre de la imagen
+                imageResName = "pendulo_de_codman",
                 description = "Ponte de pie, inclina tu tronco hacia adelante y apoya tu brazo sano en una mesa. Deja que tu brazo lesionado cuelgue relajado. Usa el impulso de tu cuerpo para generar un movimiento suave: adelante y atrás, de lado a lado y en pequeños círculos.",
                 muscle = "Manguito rotador (pasivo)",
-                setsReps = "1 min por cada dirección",
+                // **CAMBIADO:** Se usan los nuevos campos
+                sets = 1,
+                reps = 0, // No aplica, lo dejaremos en 0
                 isTimed = true,
                 duration = 180
             ),
@@ -22,7 +25,8 @@ object ExerciseData {
                 imageResName = "movilidad_asistida",
                 description = "Túmbate boca arriba. Con tu mano sana, sujeta la muñeca o el codo de tu brazo lesionado. Guía suavemente tu brazo hacia el techo (flexión) y luego separándolo de tu cuerpo (abducción), hasta tu límite sin dolor.",
                 muscle = "Deltoides y manguito rotador",
-                setsReps = "10-15 repeticiones",
+                sets = 10,
+                reps = 15,
                 isTimed = false
             ),
             Exercise(
@@ -32,7 +36,8 @@ object ExerciseData {
                 imageResName = "neurodinamia_plexo_braquial",
                 description = "Siéntate con la espalda recta. Inclina LENTAMENTE la cabeza hacia el lado contrario del hombro lesionado. Mantén esa posición solo 5 segundos (tensión muy leve, no dolor) y vuelve al centro.",
                 muscle = "Plexo braquial (nervios)",
-                setsReps = "1 serie de 5 repeticiones",
+                sets = 1,
+                reps = 5,
                 isTimed = false
             ),
             Exercise(
@@ -42,7 +47,8 @@ object ExerciseData {
                 imageResName = "rotacion_externa_e_interna",
                 description = "Empuja suavemente contra el marco de una puerta para activar los músculos de rotación interna y externa sin mover el brazo. Mantén la presión 5 segundos.",
                 muscle = "Manguito rotador",
-                setsReps = "2 series de 10 reps",
+                sets = 2,
+                reps = 10,
                 isTimed = false
             ),
             Exercise(
@@ -52,7 +58,8 @@ object ExerciseData {
                 imageResName = "retraccion_y_protraccion_escapular_cuadrupedia",
                 description = "En cuatro patas, sin doblar los codos, hunde el pecho juntando las escápulas (retracción) y luego empuja hacia arriba separándolas (protracción).",
                 muscle = "Romboides y serrato anterior",
-                setsReps = "2 series de 15 repeticiones",
+                sets = 2,
+                reps = 15,
                 isTimed = false
             ),
             Exercise(
@@ -62,7 +69,8 @@ object ExerciseData {
                 imageResName = "pajaros_apoyado",
                 description = "Tumbado boca abajo sobre un banco o cama, levanta los brazos hacia los lados con los codos ligeramente doblados, juntando las escápulas.",
                 muscle = "Deltoides posterior y trapecio",
-                setsReps = "2 series de 12 repeticiones",
+                sets = 2,
+                reps = 12,
                 isTimed = false
             ),
             Exercise(
@@ -72,7 +80,8 @@ object ExerciseData {
                 imageResName = "remo_con_banda_de_resistencia",
                 description = "Sentado, con la banda en los pies, tira de ella llevando los codos hacia atrás y juntando las escápulas.",
                 muscle = "Dorsales y romboides",
-                setsReps = "3 series de 10-12 repeticiones",
+                sets = 3,
+                reps = 12,
                 isTimed = false
             ),
             Exercise(
@@ -82,7 +91,8 @@ object ExerciseData {
                 imageResName = "rotacion_externa_hombro_banda",
                 description = "De pie, con el codo pegado al costado, gira el antebrazo hacia afuera contra la resistencia de la banda. El codo no se separa del cuerpo.",
                 muscle = "Infraespinoso y redondo menor",
-                setsReps = "3 series de 10 repeticiones",
+                sets = 3,
+                reps = 10,
                 isTimed = false
             ),
             Exercise(
@@ -92,7 +102,8 @@ object ExerciseData {
                 imageResName = "rotacion_interna_hombro_banda",
                 description = "Similar al anterior, pero ahora gira el antebrazo hacia adentro, llevando la mano hacia tu abdomen.",
                 muscle = "Subescapular",
-                setsReps = "3 series de 10 repeticiones",
+                sets = 3,
+                reps = 10,
                 isTimed = false
             ),
             Exercise(
@@ -102,7 +113,8 @@ object ExerciseData {
                 imageResName = "serratus_punch_con_banda",
                 description = "Con la banda enganchada detrás de ti, estira el brazo hacia adelante. Desde ahí, sin doblar el codo, empuja un poco más, como si quisieras alcanzar algo.",
                 muscle = "Serrato anterior",
-                setsReps = "3 series de 10 reps",
+                sets = 3,
+                reps = 10,
                 isTimed = false
             ),
             Exercise(
@@ -112,7 +124,8 @@ object ExerciseData {
                 imageResName = "estiramiento_pectoral",
                 description = "Apoya el antebrazo en el marco de una puerta, con el codo a 90°. Da un pequeño paso adelante hasta sentir un estiramiento suave en el pecho.",
                 muscle = "Pectoral",
-                setsReps = "Mantener 20-30 segundos",
+                sets = 1,
+                reps = 0,
                 isTimed = true,
                 duration = 30,
                 rest = 10
@@ -124,7 +137,8 @@ object ExerciseData {
                 imageResName = "estiramientos_hombros",
                 description = "Lleva tu brazo lesionado estirado a través de tu pecho. Con tu mano sana, tira suavemente desde el codo hacia tu cuerpo.",
                 muscle = "Deltoides posterior",
-                setsReps = "Mantener 20-30 segundos",
+                sets = 1,
+                reps = 0,
                 isTimed = true,
                 duration = 30,
                 rest = 10

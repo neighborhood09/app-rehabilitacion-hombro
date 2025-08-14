@@ -1,3 +1,4 @@
+// Fichero: app/src/main/java/com/example/rehabilitacionhombro/viewmodel/StreakViewModel.kt
 package com.example.rehabilitacionhombro.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -9,8 +10,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class StreakViewModel(private val streakDataStore: StreakDataStore) : ViewModel() {
 
@@ -34,6 +38,15 @@ class StreakViewModel(private val streakDataStore: StreakDataStore) : ViewModel(
     private val _newRewardEarned = MutableStateFlow(false)
     val newRewardEarned = _newRewardEarned.asStateFlow()
 
+    // **NUEVO:** Flujo para saber si el usuario puede usar un escudo
+    // Combina la información de `streakSavers` y `completedDates`
+    val canUseShield: StateFlow<Boolean> = combine(streakSavers, completedDates) { savers, dates ->
+        val yesterday = LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+        // Se puede usar un escudo si hay al menos uno Y si el día de ayer no está en las fechas completadas
+        savers > 0 && yesterday !in dates && today !in dates
+    }.stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = false)
+
 
     // --- Acciones que la UI puede llamar ---
 
@@ -56,6 +69,7 @@ class StreakViewModel(private val streakDataStore: StreakDataStore) : ViewModel(
 
     fun useStreakSaver() {
         viewModelScope.launch {
+            // Llama a la función del DataStore que ya existía
             streakDataStore.useStreakSaverToFillYesterday()
         }
     }

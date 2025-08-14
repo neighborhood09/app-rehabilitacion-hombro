@@ -1,3 +1,4 @@
+// Fichero: app/src/main/java/com/example/rehabilitacionhombro/ui/screens/StartScreen.kt
 package com.example.rehabilitacionhombro.ui.screens
 
 import androidx.compose.foundation.Image
@@ -10,6 +11,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +36,9 @@ fun StartScreen(
     val streakCount by streakViewModel.streakCount.collectAsState()
     val userName by streakViewModel.userName.collectAsState()
     val streakSavers by streakViewModel.streakSavers.collectAsState()
+    val canUseShield by streakViewModel.canUseShield.collectAsState() // **NUEVO:** Leemos el estado del escudo
+
+    var showShieldDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -122,6 +129,17 @@ fun StartScreen(
                 }
             }
 
+            // **NUEVO:** Botón para usar el escudo, visible solo si se cumplen las condiciones
+            if (canUseShield) {
+                Button(
+                    onClick = { showShieldDialog = true },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
+                ) {
+                    Text("Usar Escudo Protector")
+                }
+            }
+
             // Botón de acción principal
             Button(
                 onClick = onStartClick,
@@ -132,5 +150,29 @@ fun StartScreen(
                 Text("Comenzar Rutina de Hoy")
             }
         }
+    }
+
+    // **NUEVO:** Diálogo de confirmación
+    if (showShieldDialog) {
+        AlertDialog(
+            onDismissRequest = { showShieldDialog = false },
+            title = { Text("Usar Escudo Protector") },
+            text = { Text("¿Estás seguro de que quieres usar un escudo para recuperar tu racha de ayer? Te quedan $streakSavers escudos.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        streakViewModel.useStreakSaver()
+                        showShieldDialog = false
+                    }
+                ) {
+                    Text("Sí, usarlo")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showShieldDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
