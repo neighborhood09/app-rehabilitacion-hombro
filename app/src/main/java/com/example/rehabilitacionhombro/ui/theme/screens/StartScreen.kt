@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.rehabilitacionhombro.R
+import com.example.rehabilitacionhombro.ui.components.CoachAvatar
 import com.example.rehabilitacionhombro.viewmodel.StreakViewModel
 
 @Composable
@@ -49,11 +50,11 @@ fun StartScreen(
             )
         }
 
-        // **CAMBIO AQUÍ:** Icono y contador de Escudos como un elemento estático y simétrico
+        // Icono y contador de Escudos (estático)
         Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(horizontal = 12.dp, vertical = 12.dp), // Padding para simetría
+                .padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -69,6 +70,14 @@ fun StartScreen(
             )
         }
 
+        // **NUEVO:** Avatar del entrenador en la esquina inferior derecha
+        CoachAvatar(
+            streakCount = streakCount,
+            userName = userName,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 60.dp) // Lo subimos para que no lo tape el botón
+        )
 
         Column(
             modifier = Modifier

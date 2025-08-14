@@ -56,7 +56,6 @@ fun CoachAvatar(
             )
         }
 
-        // **CAMBIO AQUÍ:** Hemos aumentado el tamaño de la animación de 150.dp a 180.dp
         LottieAnimation(
             composition = composition,
             iterations = LottieConstants.IterateForever,
@@ -92,3 +91,4 @@ private fun getMotivationalMessage(streakCount: Int, userName: String): String {
     }
     return messages.random()
 }
+

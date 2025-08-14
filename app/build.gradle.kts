@@ -55,12 +55,12 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.1")
     implementation("androidx.compose.material:material-icons-extended-android:1.6.7")
-    implementation("com.airbnb.android:lottie-compose:6.4.0")
 
-    // --- LÍNEA NUEVA AÑADIDA ---
     // Para convertir objetos a JSON y viceversa
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    // --- FIN DE LÍNEA NUEVA ---
+
+    // Para las animaciones Lottie
+    implementation("com.airbnb.android:lottie-compose:6.4.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
