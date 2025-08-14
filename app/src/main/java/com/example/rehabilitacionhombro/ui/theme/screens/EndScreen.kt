@@ -24,7 +24,7 @@ fun EndScreen(
     val streakCount by streakViewModel.streakCount.collectAsState()
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.animacion_tick_verde))
 
-    // **NUEVO:** Leemos si se ha ganado una recompensa
+    // Leemos si se ha ganado una recompensa
     val newRewardEarned by streakViewModel.newRewardEarned.collectAsState()
 
     // Este efecto se ejecuta una sola vez para actualizar la racha y comprobar si hay recompensa
@@ -64,7 +64,7 @@ fun EndScreen(
             )
         }
 
-        // **NUEVO:** Mensaje de recompensa que aparece si se ha ganado un Escudo
+        // Mensaje de recompensa que aparece si se ha ganado un Escudo
         AnimatedVisibility(visible = newRewardEarned) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

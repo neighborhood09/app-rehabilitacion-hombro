@@ -3,6 +3,7 @@ package com.example.rehabilitacionhombro.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.rehabilitacionhombro.data.Exercise
 import com.example.rehabilitacionhombro.data.StreakDataStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,33 +16,19 @@ class StreakViewModel(private val streakDataStore: StreakDataStore) : ViewModel(
 
     // --- Flujos de datos para la UI ---
     val streakCount: StateFlow<Int> = streakDataStore.streakCount
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = 0
-        )
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = 0)
 
     val completedDates: StateFlow<Set<String>> = streakDataStore.completedDates
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptySet()
-        )
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptySet())
 
     val userName: StateFlow<String> = streakDataStore.userName
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ""
-        )
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = "")
 
-    // **NUEVO:** Exponemos el número de Escudos para que la UI lo pueda leer
     val streakSavers: StateFlow<Int> = streakDataStore.streakSavers
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = 0
-        )
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = 0)
+
+    val exercises: StateFlow<List<Exercise>> = streakDataStore.exercises
+        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
 
     // Flujo para comunicar a la UI si se ha ganado una recompensa
     private val _newRewardEarned = MutableStateFlow(false)
@@ -67,15 +54,19 @@ class StreakViewModel(private val streakDataStore: StreakDataStore) : ViewModel(
         }
     }
 
-    // **NUEVO:** Función para que la UI pueda gastar un Escudo
     fun useStreakSaver() {
         viewModelScope.launch {
             streakDataStore.useStreakSaverToFillYesterday()
         }
     }
+
+    fun saveExercises(updatedExercises: List<Exercise>) {
+        viewModelScope.launch {
+            streakDataStore.saveExercises(updatedExercises)
+        }
+    }
 }
 
-// El Factory no necesita cambios
 class StreakViewModelFactory(private val streakDataStore: StreakDataStore) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(StreakViewModel::class.java)) {

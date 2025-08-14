@@ -8,7 +8,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.rehabilitacionhombro.data.ExerciseData
 import com.example.rehabilitacionhombro.data.StreakDataStore
 import com.example.rehabilitacionhombro.ui.screens.CalendarScreen
 import com.example.rehabilitacionhombro.ui.screens.EndScreen
@@ -21,76 +20,73 @@ import com.example.rehabilitacionhombro.viewmodel.StreakViewModelFactory
 @Composable
 fun RehabApp() {
     val navController = rememberNavController()
-    val exercises = ExerciseData.exercises
-
     val context = LocalContext.current
     val streakViewModel: StreakViewModel = viewModel(
         factory = StreakViewModelFactory(StreakDataStore(context))
     )
 
-    // Leemos el nombre de usuario guardado
     val userName by streakViewModel.userName.collectAsState()
+    val exercises by streakViewModel.exercises.collectAsState()
 
-    // **LÓGICA CLAVE:** Decidimos cuál es la pantalla de inicio.
-    // Si el nombre está vacío, empezamos en "welcome", si no, en "start".
     val startDestination = if (userName.isBlank()) "welcome" else "start"
 
-    NavHost(navController = navController, startDestination = startDestination) {
-        // **NUEVA RUTA:** Para la pantalla de bienvenida
-        composable("welcome") {
-            WelcomeScreen(
-                streakViewModel = streakViewModel,
-                onNameSaved = {
-                    // Una vez guardado el nombre, vamos a la pantalla de inicio
-                    // y borramos la de bienvenida del historial para no volver.
-                    navController.navigate("start") {
-                        popUpTo("welcome") { inclusive = true }
+    if (exercises.isNotEmpty()) {
+        NavHost(navController = navController, startDestination = startDestination) {
+            composable("welcome") {
+                WelcomeScreen(
+                    streakViewModel = streakViewModel,
+                    onNameSaved = {
+                        navController.navigate("start") {
+                            popUpTo("welcome") { inclusive = true }
+                        }
                     }
-                }
-            )
-        }
-        composable("start") {
-            StartScreen(
-                streakViewModel = streakViewModel,
-                onStartClick = { navController.navigate("exercise/0") },
-                onNavigateToCalendar = { navController.navigate("calendar") }
-            )
-        }
-        composable("exercise/{index}") { backStackEntry ->
-            val index = backStackEntry.arguments?.getString("index")?.toInt() ?: 0
-            ExerciseScreen(
-                exercise = exercises[index],
-                exerciseIndex = index,
-                exerciseCount = exercises.size,
-                onNext = {
-                    if (index < exercises.size - 1) {
-                        navController.navigate("exercise/${index + 1}")
-                    } else {
-                        navController.navigate("end")
+                )
+            }
+            composable("start") {
+                StartScreen(
+                    streakViewModel = streakViewModel,
+                    onStartClick = { navController.navigate("exercise/0") },
+                    onNavigateToCalendar = { navController.navigate("calendar") }
+                )
+            }
+            composable("exercise/{index}") { backStackEntry ->
+                val index = backStackEntry.arguments?.getString("index")?.toInt() ?: 0
+                ExerciseScreen(
+                    // **LÍNEA CORREGIDA:** Ahora le pasamos el ViewModel
+                    streakViewModel = streakViewModel,
+                    exercise = exercises[index],
+                    exerciseIndex = index,
+                    exerciseCount = exercises.size,
+                    onNext = {
+                        if (index < exercises.size - 1) {
+                            navController.navigate("exercise/${index + 1}")
+                        } else {
+                            navController.navigate("end")
+                        }
+                    },
+                    onPrevious = {
+                        if (index > 0) {
+                            navController.popBackStack()
+                        }
                     }
-                },
-                onPrevious = {
-                    if (index > 0) {
-                        navController.popBackStack()
+                )
+            }
+            composable("end") {
+                EndScreen(
+                    streakViewModel = streakViewModel,
+                    onRestartClick = {
+                        navController.navigate("start") {
+                            popUpTo("start") { inclusive = true }
+                        }
                     }
-                }
-            )
-        }
-        composable("end") {
-            EndScreen(
-                streakViewModel = streakViewModel,
-                onRestartClick = {
-                    navController.navigate("start") {
-                        popUpTo("start") { inclusive = true }
-                    }
-                }
-            )
-        }
-        composable("calendar") {
-            CalendarScreen(
-                streakViewModel = streakViewModel,
-                onBack = { navController.popBackStack() }
-            )
+                )
+            }
+            composable("calendar") {
+                CalendarScreen(
+                    streakViewModel = streakViewModel,
+                    onBack = { navController.popBackStack() }
+                )
+            }
         }
     }
 }
