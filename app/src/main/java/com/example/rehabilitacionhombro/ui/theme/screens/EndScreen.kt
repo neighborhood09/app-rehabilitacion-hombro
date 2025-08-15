@@ -21,6 +21,12 @@ import com.airbnb.lottie.compose.*
 import com.example.rehabilitacionhombro.R
 import com.example.rehabilitacionhombro.data.Achievement
 import com.example.rehabilitacionhombro.viewmodel.StreakViewModel
+import android.media.MediaPlayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.runtime.DisposableEffect
+
 
 @Composable
 fun EndScreen(
@@ -30,13 +36,30 @@ fun EndScreen(
     val streakCount by streakViewModel.streakCount.collectAsState()
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.animacion_tick_verde))
     val context = androidx.compose.ui.platform.LocalContext.current
+    val haptic = LocalHapticFeedback.current
 
     val newRewardEarned by streakViewModel.newRewardEarned.collectAsState()
     val newAchievement by streakViewModel.newAchievementUnlocked.collectAsState()
 
-    // **CORREGIDO:** Aquí solo actualizamos la racha y los datos, pero no comprobamos los logros.
+    // **ACTUALIZADO:** Lógica de vibración y sonido
     LaunchedEffect(Unit) {
+        // Vibración
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        // Sonido
+        val mediaPlayer = MediaPlayer.create(context, R.raw.completed_sound) // Reemplaza "completed_sound" con el nombre de tu archivo
+        mediaPlayer.start()
+        mediaPlayer.setOnCompletionListener { mp -> mp.release() }
+
         streakViewModel.onRoutineCompleted()
+    }
+
+    DisposableEffect(Unit) {
+        val mediaPlayer = MediaPlayer.create(context, R.raw.completed_sound) // Reemplaza "completed_sound" con el nombre de tu archivo
+        mediaPlayer.start()
+        mediaPlayer.setOnCompletionListener { mp -> mp.release() }
+        onDispose {
+            mediaPlayer.release()
+        }
     }
 
     Column(
