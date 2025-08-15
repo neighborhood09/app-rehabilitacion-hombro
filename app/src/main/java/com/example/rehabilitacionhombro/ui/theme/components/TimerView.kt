@@ -3,7 +3,6 @@ package com.example.rehabilitacionhombro.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
@@ -12,12 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
@@ -38,14 +32,12 @@ fun TimerView(
 
     val haptic = LocalHapticFeedback.current
 
-    // **NUEVO:** Lógica para el cronómetro con un ciclo completo (ejercicio + descanso)
     LaunchedEffect(key1 = isRunning, key2 = timeLeft) {
         if (isRunning) {
             while (timeLeft > 0) {
                 delay(1000L)
                 timeLeft -= 1000L
             }
-            // Cuando el temporizador llega a 0
             isRunning = false
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
 
@@ -60,82 +52,72 @@ fun TimerView(
         }
     }
 
+    // **ACTUALIZADO:** Animamos el progreso de la barra de forma suave
     val progress = animateFloatAsState(
-        targetValue = if (totalTime > 0) timeLeft.toFloat() / (if (isResting) restTime.toFloat() else totalTime.toFloat()) else 0f
+        targetValue = if (isResting)
+            (restTime - timeLeft).toFloat() / restTime
+        else
+            (totalTime - timeLeft).toFloat() / totalTime
     )
 
-    // **NUEVO:** Animación de color según el tiempo restante
+    // **NUEVO:** Animación de color de la barra de progreso
     val animatedColor = animateColorAsState(
         targetValue = when {
-            isResting -> Color(0xFFF44336) // Rojo para el descanso
-            timeLeft > 10000L -> Color(0xFF4CAF50) // Verde
-            timeLeft > 5000L -> Color(0xFFFFC107) // Amarillo
-            else -> Color(0xFFE53935) // Rojo intenso al final
+            isResting -> Color(0xFFE53935) // Rojo para el descanso
+            timeLeft > 10000L -> Color(0xFF4CAF50) // Verde si queda mucho tiempo
+            timeLeft > 5000L -> Color(0xFFFFC107) // Amarillo si queda poco
+            else -> Color(0xFFE53935) // Rojo si queda muy poco
         }
     )
 
-    Box(
-        modifier = modifier.size(150.dp),
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // **NUEVO:** Implementación del cronómetro circular
-        CircularProgressIndicator(
-            progress = { 1f - progress.value },
-            modifier = Modifier.size(150.dp),
-            color = animatedColor.value,
-            strokeCap = StrokeCap.Round,
-            strokeWidth = 8.dp
-        )
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
-                text = (timeLeft / 1000L).toString(),
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                fontSize = 48.sp,
+                text = if (isResting) "Descanso: " else "Tiempo: ",
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = if (isResting) "Descanso" else "Tiempo",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = (timeLeft / 1000L).toString() + "s",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
-        }
-    }
 
-    Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.width(16.dp))
 
-    // **NUEVO:** Botones con iconos y lógica mejorada
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        if (!isRunning) {
-            Button(
+            IconButton(
                 onClick = {
-                    if (timeLeft <= 0) { // Reset y empezar
+                    if (timeLeft <= 0) {
                         timeLeft = totalTime
                         isResting = false
                     }
-                    isRunning = true
+                    isRunning = !isRunning
                 }
             ) {
                 Icon(
-                    imageVector = Icons.Filled.PlayArrow,
-                    contentDescription = "Iniciar"
+                    imageVector = if (isRunning) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = if (isRunning) "Pausa" else "Iniciar",
+                    modifier = Modifier.size(48.dp)
                 )
-                Spacer(Modifier.width(8.dp))
-                Text("Iniciar")
-            }
-        } else {
-            Button(onClick = { isRunning = false }) {
-                Icon(
-                    imageVector = Icons.Filled.Pause,
-                    contentDescription = "Pausa"
-                )
-                Spacer(Modifier.width(8.dp))
-                Text("Pausa")
             }
         }
+
+        Spacer(Modifier.height(8.dp))
+
+        // **ACTUALIZADO:** La barra de progreso ahora usa el color animado
+        LinearProgressIndicator(
+            progress = { progress.value },
+            modifier = Modifier.fillMaxWidth(),
+            color = animatedColor.value,
+            trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+        )
     }
 }

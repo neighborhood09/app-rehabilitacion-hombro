@@ -46,15 +46,12 @@ fun ExerciseScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Contenido principal que se desplaza (Parte superior y descripción)
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 140.dp) // Añadimos un padding fijo para que los botones de abajo no lo tapen
-                .padding(horizontal = 16.dp)
+                .padding(16.dp)
         ) {
-            // Parte superior: progreso, título, imagen
+            // Fila para el progreso y el botón de ajustes (Parte superior Fija)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -87,68 +84,73 @@ fun ExerciseScreen(
                     .aspectRatio(16f / 9f),
                 contentScale = ContentScale.Fit
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Músculos: ${exercise.muscle}", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(exercise.description, style = MaterialTheme.typography.bodyLarge)
-        }
 
-        // Parte inferior fija: series, reps, timer y botones de navegación
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (currentSets > 0) {
-                Text("Series: ${currentSets}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-            }
-            if (currentReps > 0) {
-                if (currentSets > 0) { Spacer(modifier = Modifier.height(8.dp)) }
-                Text("Repeticiones: ${currentReps}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-            }
-            if (exercise.isTimed && currentDuration > 0) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Duración: ${currentDuration}s", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            if (exercise.isTimed) {
-                TimerView(
-                    key = exercise.id,
-                    totalTime = currentDuration.toLong() * 1000,
-                    restTime = exercise.rest.toLong() * 1000,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            // **CORREGIDO:** La columna de descripción toma todo el espacio flexible restante
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f) // Esto hace que ocupe todo el espacio disponible de forma flexible
+                    .verticalScroll(rememberScrollState())
+                    .padding(top = 16.dp)
             ) {
-                Button(
-                    onClick = onPrevious,
-                    enabled = exerciseIndex > 0,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Anterior")
+                Text("Músculos: ${exercise.muscle}", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(exercise.description, style = MaterialTheme.typography.bodyLarge)
+            }
+
+            // **CORREGIDO:** La parte inferior ahora está en una columna propia, garantizando que el espacio sea fijo.
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (currentSets > 0) {
+                    Text("Series: ${currentSets}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
                 }
-                Button(
-                    onClick = {
-                        streakViewModel.saveExercises(
-                            exercises.toMutableList().also {
-                                it[exerciseIndex] = it[exerciseIndex].copy(
-                                    sets = currentSets,
-                                    reps = currentReps,
-                                    duration = currentDuration
-                                )
-                            }
-                        )
-                        onNext()
-                    },
-                    modifier = Modifier.weight(1f)
+                if (currentReps > 0) {
+                    if (currentSets > 0) { Spacer(modifier = Modifier.height(8.dp)) }
+                    Text("Repeticiones: ${currentReps}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                }
+                if (exercise.isTimed && currentDuration > 0) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Duración: ${currentDuration}s", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                if (exercise.isTimed) {
+                    TimerView(
+                        key = exercise.id,
+                        totalTime = currentDuration.toLong() * 1000,
+                        restTime = exercise.rest.toLong() * 1000
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(if (exerciseIndex < exerciseCount - 1) "Siguiente" else "Finalizar")
+                    Button(
+                        onClick = onPrevious,
+                        enabled = exerciseIndex > 0,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Anterior")
+                    }
+                    Button(
+                        onClick = {
+                            streakViewModel.saveExercises(
+                                exercises.toMutableList().also {
+                                    it[exerciseIndex] = it[exerciseIndex].copy(
+                                        sets = currentSets,
+                                        reps = currentReps,
+                                        duration = currentDuration
+                                    )
+                                }
+                            )
+                            onNext()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(if (exerciseIndex < exerciseCount - 1) "Siguiente" else "Finalizar")
+                    }
                 }
             }
         }
