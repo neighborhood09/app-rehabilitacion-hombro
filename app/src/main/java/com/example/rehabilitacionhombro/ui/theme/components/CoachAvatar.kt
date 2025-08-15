@@ -1,3 +1,4 @@
+// Fichero: app/src/main/java/com/example/rehabilitacionhombro/ui/components/CoachAvatar.kt
 package com.example.rehabilitacionhombro.ui.components
 
 import androidx.compose.foundation.background
@@ -91,4 +92,3 @@ private fun getMotivationalMessage(streakCount: Int, userName: String): String {
     }
     return messages.random()
 }
-

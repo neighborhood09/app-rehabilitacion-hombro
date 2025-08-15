@@ -1,4 +1,3 @@
-// Fichero: app/src/main/java/com/example/rehabilitacionhombro/RehabApp.kt
 package com.example.rehabilitacionhombro
 
 import androidx.compose.runtime.Composable

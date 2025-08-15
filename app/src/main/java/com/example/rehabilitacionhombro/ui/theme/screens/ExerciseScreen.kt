@@ -1,4 +1,3 @@
-// Fichero: app/src/main/java/com/example/rehabilitacionhombro/ui/screens/ExerciseScreen.kt
 package com.example.rehabilitacionhombro.ui.screens
 
 import android.content.Context
