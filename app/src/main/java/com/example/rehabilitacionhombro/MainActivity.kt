@@ -18,9 +18,10 @@ import androidx.core.view.WindowCompat
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.example.rehabilitacionhombro.ui.theme.RehabilitacionHombroTheme
 import java.util.concurrent.TimeUnit
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 class MainActivity : ComponentActivity() {
 
@@ -35,8 +36,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // **CORREGIDO:** Configura el modo a pantalla completa antes de setContent
+        // **CORREGIDO:** Configura el modo a pantalla completa con la API nativa
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
@@ -49,14 +53,6 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            // **CORREGIDO:** El rememberSystemUiController debe ir dentro de la composición
-            val systemUiController = rememberSystemUiController()
-            LaunchedEffect(systemUiController) {
-                systemUiController.isSystemBarsVisible = false
-                systemUiController.isNavigationBarVisible = false
-                systemUiController.isStatusBarVisible = false
-            }
-
             RehabilitacionHombroTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),

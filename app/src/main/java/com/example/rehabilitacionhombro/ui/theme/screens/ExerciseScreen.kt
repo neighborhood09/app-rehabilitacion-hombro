@@ -85,24 +85,20 @@ fun ExerciseScreen(
                 contentScale = ContentScale.Fit
             )
 
-            // **CORREGIDO:** La columna de descripción toma todo el espacio flexible restante
+            // Columna con solo la descripción y campos de valores que se desplazan
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f) // Esto hace que ocupe todo el espacio disponible de forma flexible
+                    .weight(1f) // Ocupa todo el espacio restante de forma flexible
                     .verticalScroll(rememberScrollState())
                     .padding(top = 16.dp)
             ) {
                 Text("Músculos: ${exercise.muscle}", style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(exercise.description, style = MaterialTheme.typography.bodyLarge)
-            }
 
-            // **CORREGIDO:** La parte inferior ahora está en una columna propia, garantizando que el espacio sea fijo.
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+                Spacer(modifier = Modifier.height(24.dp))
+
                 if (currentSets > 0) {
                     Text("Series: ${currentSets}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
                 }
@@ -122,36 +118,40 @@ fun ExerciseScreen(
                         restTime = exercise.rest.toLong() * 1000
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Button(
-                        onClick = onPrevious,
-                        enabled = exerciseIndex > 0,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Anterior")
-                    }
-                    Button(
-                        onClick = {
-                            streakViewModel.saveExercises(
-                                exercises.toMutableList().also {
-                                    it[exerciseIndex] = it[exerciseIndex].copy(
-                                        sets = currentSets,
-                                        reps = currentReps,
-                                        duration = currentDuration
-                                    )
-                                }
+            }
+        }
+
+        // Fila de botones de navegación fijos
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        ) {
+            Button(
+                onClick = onPrevious,
+                enabled = exerciseIndex > 0,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Anterior")
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Button(
+                onClick = {
+                    streakViewModel.saveExercises(
+                        exercises.toMutableList().also {
+                            it[exerciseIndex] = it[exerciseIndex].copy(
+                                sets = currentSets,
+                                reps = currentReps,
+                                duration = currentDuration
                             )
-                            onNext()
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(if (exerciseIndex < exerciseCount - 1) "Siguiente" else "Finalizar")
-                    }
-                }
+                        }
+                    )
+                    onNext()
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(if (exerciseIndex < exerciseCount - 1) "Siguiente" else "Finalizar")
             }
         }
     }
